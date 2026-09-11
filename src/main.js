@@ -1,35 +1,44 @@
-import { Client, Users } from 'node-appwrite';
+import { Client, Databases, Messaging } from 'node-appwrite';
+import { getCurrentISTDateComponents } from './DateComponents.js';
+import { getFestivalsForDate } from './Calendar.js';
+import { sendFestivalNotification } from './TopicNotifier.js';
 
-// This Appwrite function will be executed every time your function is triggered
 export default async ({ req, res, log, error }) => {
-  // You can use the Appwrite SDK to interact with other services
-  // For this example, we're using the Users service
   const client = new Client()
     .setEndpoint(process.env.APPWRITE_FUNCTION_API_ENDPOINT)
     .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
     .setKey(req.headers['x-appwrite-key'] ?? '');
-  const users = new Users(client);
+
+  const databases = new Databases(client);
+  const messaging = new Messaging(client);
 
   try {
-    const response = await users.list();
-    // Log messages and errors to the Appwrite Console
-    // These logs won't be seen by your end users
-    log(`Total users: ${response.total}`);
-  } catch(err) {
-    error("Could not list users: " + err.message);
-  }
+    const dateComponents = getCurrentISTDateComponents();
+    log(`Current IST date components: ${JSON.stringify(dateComponents)}`);
 
-  // The req object contains the request data
-  if (req.path === "/ping") {
-    // Use res object to respond with text(), json(), or binary()
-    // Don't forget to return a response!
-    return res.text("Pong");
-  }
+    const festivals = await getFestivalsForDate(databases, dateComponents);
+    log(`Festivals for today: ${JSON.stringify(festivals)}`);
 
-  return res.json({
-    motto: "Build like a team of hundreds_",
-    learn: "https://appwrite.io/docs",
-    connect: "https://appwrite.io/discord",
-    getInspired: "https://builtwith.appwrite.io",
-  });
+    const notification = await sendFestivalNotification(
+      messaging,
+      null,
+      festivals,
+      dateComponents
+    );
+
+    if (!notification) {
+      log('No festivals today, no notification sent.');
+      return res.json({ title: null, body: null });
+    }
+
+    log(`Push notification sent: ${JSON.stringify(notification.message)}`);
+
+    return res.json({
+      title: notification.template.title,
+      body: notification.template.body,
+    });
+  } catch (err) {
+    error(`Failed to send festival notification: ${err.message}`);
+    return res.json({ error: err.message }, 500);
+  }
 };

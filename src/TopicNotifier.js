@@ -24,7 +24,12 @@ export function createPushNotificationText(userId, festivals) {
   return { userId, template };
 }
 
-export async function sendFestivalNotification(messaging, userId, festivals, dateComponents) {
+export async function sendFestivalNotification(
+  messaging,
+  userId,
+  festivals,
+  dateComponents
+) {
   const notification = createPushNotificationText(userId, festivals);
 
   if (!notification) {
@@ -34,5 +39,9 @@ export async function sendFestivalNotification(messaging, userId, festivals, dat
   const { title, body } = notification.template;
   const messageId = buildFestivalMessageId(dateComponents);
 
-  return messaging.createPush(messageId, title, body, [FESTIVAL_TOPIC_ID]);
+  const message = await messaging.createPush(messageId, title, body, [
+    FESTIVAL_TOPIC_ID,
+  ]);
+
+  return { template: notification.template, message };
 }
