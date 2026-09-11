@@ -1,4 +1,4 @@
-const FESTIVAL_TOPIC_ID = process.env.APPWRITE_FESTIVAL_TOPIC_ID;
+const FESTIVAL_TOPIC_ID = process.env.FESTIVALS_TOPIC_ID;
 
 function buildFestivalMessageId({ day, month, year }) {
   const pad = (value) => String(value).padStart(2, '0');
