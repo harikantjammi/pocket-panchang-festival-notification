@@ -1,4 +1,4 @@
-import { Client, Databases, Messaging } from 'node-appwrite';
+import { Client, TablesDB, Messaging } from 'node-appwrite';
 import { getCurrentISTDateComponents } from './DateComponents.js';
 import { getFestivalsForDate } from './Calendar.js';
 import { sendFestivalNotification } from './TopicNotifier.js';
@@ -9,14 +9,14 @@ export default async ({ req, res, log, error }) => {
     .setProject(process.env.APPWRITE_FUNCTION_PROJECT_ID)
     .setKey(req.headers['x-appwrite-key'] ?? '');
 
-  const databases = new Databases(client);
+  const tablesDB = new TablesDB(client);
   const messaging = new Messaging(client);
 
   try {
     const dateComponents = getCurrentISTDateComponents();
     log(`Current IST date components: ${JSON.stringify(dateComponents)}`);
 
-    const festivals = await getFestivalsForDate(databases, dateComponents);
+    const festivals = await getFestivalsForDate(tablesDB, dateComponents);
     log(`Festivals for today: ${JSON.stringify(festivals)}`);
 
     const notification = await sendFestivalNotification(

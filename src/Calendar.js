@@ -1,20 +1,20 @@
 import { Query } from 'node-appwrite';
 
 const DATABASE_ID = process.env.APPWRITE_DATABASE_ID;
-const FESTIVALS_COLLECTION_ID = process.env.APPWRITE_FESTIVALS_COLLECTION_ID;
+const FESTIVALS_TABLE_ID = process.env.APPWRITE_FESTIVALS_TABLE_ID;
 
-export async function getFestivalsForDate(databases, { day, month, year }) {
-  const response = await databases.listDocuments(DATABASE_ID, FESTIVALS_COLLECTION_ID, [
+export async function getFestivalsForDate(tablesDB, { day, month, year }) {
+  const response = await tablesDB.listRows(DATABASE_ID, FESTIVALS_TABLE_ID, [
     Query.equal('day', day),
     Query.equal('month', month),
     Query.equal('year', year),
   ]);
 
-  const [document] = response.documents;
+  const [row] = response.rows;
 
-  if (!document) {
+  if (!row) {
     return [];
   }
 
-  return document.festival.split(',').map((festival) => festival.trim());
+  return row.festival.split(',').map((festival) => festival.trim());
 }
