@@ -1,16 +1,15 @@
-import { ID } from 'node-appwrite';
-
 const FESTIVAL_TOPIC_ID = process.env.FESTIVALS_TOPIC_ID;
 
-function buildFestivalMessageId() {
-  return ID.unique();
+function buildFestivalMessageId({ day, month, year }) {
+  const pad = (value) => String(value).padStart(2, '0');
+
+  return `${pad(day)}-${pad(month)}-${year}-festival`;
 }
 
-// Deterministic ID, kept for reference:
-// function buildFestivalMessageId({ day, month, year }) {
-//   const pad = (value) => String(value).padStart(2, '0');
-//
-//   return `${pad(day)}-${pad(month)}-${year}-festival`;
+// Random ID, kept for reference:
+// import { ID } from 'node-appwrite';
+// function buildFestivalMessageId() {
+//   return ID.unique();
 // }
 
 function joinWithAnd(items) {
@@ -92,7 +91,7 @@ export async function sendFestivalNotification(
   }
 
   const { title, body } = notification.template;
-  const messageId = buildFestivalMessageId();
+  const messageId = buildFestivalMessageId(dateComponents);
 
   const message = await messaging.createPush(messageId, title, body, [
     FESTIVAL_TOPIC_ID,
