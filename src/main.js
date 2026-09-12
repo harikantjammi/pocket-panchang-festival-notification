@@ -1,6 +1,7 @@
 import { Client, TablesDB, Messaging } from 'node-appwrite';
 import { getCurrentISTDateComponents } from './DateComponents.js';
 import { getFestivalsForDate } from './Calendar.js';
+import { selectSignificantFestivals } from './FestivalSignificance.js';
 import { sendFestivalNotification } from './TopicNotifier.js';
 
 export default async ({ req, res, log, error }) => {
@@ -19,10 +20,13 @@ export default async ({ req, res, log, error }) => {
     const festivals = await getFestivalsForDate(tablesDB, dateComponents);
     log(`Festivals for today: ${JSON.stringify(festivals)}`);
 
+    const curatedFestivals = await selectSignificantFestivals(festivals);
+    log(`Curated festivals for today: ${JSON.stringify(curatedFestivals)}`);
+
     const notification = await sendFestivalNotification(
       messaging,
       null,
-      festivals,
+      curatedFestivals,
       dateComponents
     );
 
